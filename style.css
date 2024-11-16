@@ -1,0 +1,111 @@
+/* Universal selector styling all elements */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Styling the body element */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding-top: 60px; /* Prevent content overlap with the navbar */
+    background-color: #f5f5f5;
+}
+
+/* Styling the navbar container */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #24292e;
+    color: #ffffff;
+    padding: 10px 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Styling the logo link inside the navbar */
+.logo a {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* Styling the navigation links container */
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+}
+
+/* Styling the individual navigation links */
+.nav-links a {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 16px;
+    padding: 5px;
+    transition: color 0.3s;
+}
+
+/* Styling the hover effect for navigation links */
+.nav-links a:hover {
+    color: #58a6ff;
+}
+
+/* Styling the authentication links container */
+.auth-links {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+/* Styling the individual authentication links */
+.auth-links a {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 16px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+/* Styling the signup button */
+.signup-button {
+    background-color: #28a745;
+    color: #ffffff;
+    padding: 5px 15px;
+}
+
+/* Styling the hover effect for authentication links and signup button */
+.auth-links a:hover,
+.signup-button:hover {
+    background-color: #1c7d33;
+}
+
+/* Styling the greeting text */
+.greeting {
+    color: #ffffff;
+    font-size: 16px;
+    margin-right: 15px;
+}
+
+/* Styling the logout button */
+.logout-button {
+    background-color: #d9534f;
+    color: #ffffff;
+    padding: 5px 15px;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+/* Styling the hover effect for the logout button */
+.logout-button:hover {
+    background-color: #c9302c;
+}
+
