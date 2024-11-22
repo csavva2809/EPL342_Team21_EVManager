@@ -1,29 +1,33 @@
-<html>
+
+<!DOCTYPE html>
+<html lang="en">
 <head>
-	<title>EPL342 project test page</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Website</title>
+    <link rel="stylesheet" href="style.css"> <!-- Link to your CSS file -->
 </head>
 <body>
+    <!-- Include the Navbar -->
+    <?php include 'navbar.php'; ?>
 
-	<table cellSpacing=0 cellPadding=5 width="100%" border=0>
-	<tr>
-		<td vAlign=top width=170><img height=91 alt=UCY src="images/ucy.jpg" width=94>
-			<h5>
-				<a href="http://www.ucy.ac.cy/">University of Cyprus</a><BR/>
-				<a href="http://www.cs.ucy.ac.cy/">Dept. of Computer Science</a>
-			</h5>
-		</td>
-		<td vAlign=center align=middle><h2>Welcome to the EPL342 project test page</h2></td>
-	</tr>
-    </table>
-	<hr>
-    
-    Please give the SQL DB, username and password to connect to:
-    <form action="connect.php" method="post">
-	Database: <input type="text" name="dbName"><br>
-    Username: <input type="text" name="userName"><br>
-    Password: <input type="password" name="pswd"><br>
-    <input type="submit" name="connect"> 
-    </form>
+    <!-- Main Content -->
+    <main>
+        <section class="hero">
+            <h1>Welcome to My Website</h1>
+            <p>Your journey starts here. Discover amazing things with us.</p>
+        </section>
+        <section class="content">
+            <h2>About Us</h2>
+            <p>We are a company dedicated to providing the best services to our customers. Learn more about what we offer.</p>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 MyWebsite. All rights reserved.</p>
+    </footer>
 </body>
-
 </html>
+
