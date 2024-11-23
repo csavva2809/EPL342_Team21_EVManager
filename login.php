@@ -8,29 +8,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
 
     // Initialize variables
-    $isValid = 0; // BIT output parameter
+    $error_message = ''; // For error feedback
     $storedPassword = ''; // To retrieve the hashed password
 
     // Prepare the query to fetch the hashed password
-    $sqlFetch = "SELECT Password FROM Users WHERE UserName = ?";
+    $sqlFetch = "SELECT Password, Role FROM Users WHERE UserName = ?";
     $stmtFetch = sqlsrv_query($conn, $sqlFetch, array($userName));
 
     if ($stmtFetch === false) {
         // Output error details
         $error_message = "Error fetching hashed password: " . print_r(sqlsrv_errors(), true);
     } else {
-        // Fetch the hashed password
+        // Fetch the hashed password and role
         $row = sqlsrv_fetch_array($stmtFetch, SQLSRV_FETCH_ASSOC);
         sqlsrv_free_stmt($stmtFetch);
 
         if ($row) {
             $storedPassword = $row['Password'];
+            $userRole = $row['Role']; // Fetch the role directly
 
             // Verify the provided password against the stored hash
             if (password_verify($password, $storedPassword)) {
                 // Successful login
                 $_SESSION['user'] = $userName;
-                header("Location: dashboard.php"); // Redirect to a dashboard or home page
+                $_SESSION['role'] = $userRole; // Store the role in the session
+                header("Location: index.php"); // Redirect to a dashboard or home page
                 exit();
             } else {
                 // Invalid credentials
