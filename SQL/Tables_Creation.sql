@@ -14,3 +14,24 @@ CREATE TABLE Users (
     CONSTRAINT PK_Users PRIMARY KEY (PersonID, UserName)
 );
 DROP TABLE Users;
+
+--Creation of the Forms Table
+CREATE TABLE Forms(
+	FormID NVARCHAR(20) NOT NULL,
+	FormName NVARCHAR(20) NOT NULL,
+	Description NVARCHAR(50) NOT NULL,
+	Path NVARCHAR(255) NOT NULL,
+	CONSTRAINT PK_Forms PRIMARY KEY (FormID)
+);
+
+--Store Forms Into Forms Table
+INSERT INTO Forms(FormID, FormName, Description, Path)
+VALUES (1, 'FIMAS', 'AuthorityForPaymentsFromFimas', '/home/students/cs/2021/ksavva05/public_html/dbpro/forms/FIMAS.pdf')
+INSERT INTO Forms(FormID, FormName, Description, Path)
+VALUES (2, 'C2_C6', 'CommitmentToMaintainTaxiFor5Years', '/home/students/cs/2021/ksavva05/public_html/dbpro/forms/C2_C6.pdf')
+INSERT INTO Forms(FormID, FormName, Description, Path)
+VALUES (3, 'C9', 'OrderConfirmation', '/home/students/cs/2021/ksavva05/public_html/dbpro/forms/C9.pdf')
+INSERT INTO Forms(FormID, FormName, Description, Path)
+VALUES (4, 'C15', 'OrderConfirmation(Bike)', '/home/students/cs/2021/ksavva05/public_html/dbpro/forms/C15.pdf')
+INSERT INTO Forms(FormID, FormName, Description, Path)
+VALUES (5, 'C16', 'ReceiveConfirmationForAllowanceTickets', '/home/students/cs/2021/ksavva05/public_html/dbpro/forms/C16.pdf')
