@@ -35,21 +35,17 @@ CREATE PROCEDURE RegisterUser
     @Message NVARCHAR(255) OUTPUT
 AS
 BEGIN
-    -- Declare variables to check for existing username and email
     DECLARE @UsernameExists INT;
     DECLARE @EmailExists INT;
 
-    -- Check if the username already exists
     SELECT @UsernameExists = COUNT(*)
     FROM Users
     WHERE UserName = @UserName;
 
-    -- Check if the email already exists
     SELECT @EmailExists = COUNT(*)
     FROM Users
     WHERE Email = @Email;
 
-    -- Handle duplicate username or email
     IF @UsernameExists > 0
     BEGIN
         SET @Success = 0;
@@ -63,7 +59,6 @@ BEGIN
         RETURN;
     END
 
-    -- Insert the new user into the Users table
     BEGIN TRY
         INSERT INTO Users (
             PersonID, LastName, FirstName, UserName, Email, Password, Address, BirthDate, Phone, Sex
