@@ -1,4 +1,5 @@
---Navbar Style--
+/*Style Navbar*/
+
 /* General reset for consistent styling */
 * {
     margin: 0;
@@ -8,9 +9,14 @@
 
 body {
     font-family: Arial, sans-serif;
+    line-height: 1.6;
+    background-color: #f4f4f4; /* Light background color */
+    color: #333; /* Default text color */
+    margin: 0;
+    padding: 0;
 }
 
-/* Navbar Container */
+/* Navbar Styles */
 .navbar {
     display: flex;
     justify-content: space-between;
@@ -88,4 +94,256 @@ body {
         gap: 5px;
     }
 }
+/*style of login singup*/
+.login-form,
+.registration-form {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.login-form h2,
+.registration-form h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.login-form label,
+.registration-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+.login-form input[type="text"],
+.registration-form input[type="text"],
+.login-form input[type="email"],
+.registration-form input[type="email"],
+.login-form input[type="password"],
+.registration-form input[type="password"],
+.login-form input[type="date"],
+.registration-form input[type="date"],
+.login-form input[type="tel"],
+.registration-form input[type="tel"],
+.login-form select,
+.registration-form select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 14px;
+    background-color: #f9f9f9;
+    color: #333;
+}
+
+.login-form input[type="submit"],
+.registration-form input[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+}
+
+.login-form input[type="submit"]:hover,
+.registration-form input[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+.login-form .error,
+.registration-form .error {
+    color: red;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.login-form .success,
+.registration-form .success {
+    color: green;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* Dashboard Styles */
+/* Dashboard Container */
+.dashboard-container {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.dashboard-container h2 {
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.dashboard-container p {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 30px;
+}
+
+/* Role Management Section */
+.role-management-section {
+    margin-top: 30px;
+    text-align: left;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.role-management-section h3 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 22px;
+    text-align: center;
+}
+
+/* Role Change Form */
+.role-change-form {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.role-change-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+.role-change-form input[type="text"],
+.role-change-form select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 14px;
+    background-color: #f9f9f9;
+    color: #333;
+}
+
+.role-change-form input[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+}
+
+.role-change-form input[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+/* Error and Success Messages */
+.error {
+    color: red;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.success {
+    color: green;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+/* Button to Toggle Role Change Form */
+#toggleFormBtn {
+    display: inline-block;
+    margin: 20px 0;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background-color 0.3s ease-in-out;
+}
+
+#toggleFormBtn:hover {
+    background-color: #0056b3;
+}
+
+/* Role Change Form */
+#roleChangeForm {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#roleChangeForm h3 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #333;
+    font-size: 22px;
+}
+
+.role-change-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+.role-change-form input[type="text"],
+.role-change-form select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 14px;
+    background-color: #f9f9f9;
+    color: #333;
+}
+
+.role-change-form input[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+}
+
+.role-change-form input[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
 

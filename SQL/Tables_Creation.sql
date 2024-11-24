@@ -59,3 +59,4 @@ CREATE TABLE Applications (
 	CONSTRAINT PK_Application PRIMARY KEY (ApplicationID),
 	CONSTRAINT FK_Application FOREIGN KEY (PersonID, UserName) REFERENCES Users(PersonID, UserName)
 );
+

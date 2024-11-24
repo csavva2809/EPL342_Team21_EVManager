@@ -1,21 +1,11 @@
 ﻿CREATE PROCEDURE ValidateLogin
     @UserName NVARCHAR(25),
-    @Password NVARCHAR(255),
-    @IsValid BIT OUTPUT
+    @Password NVARCHAR(255) OUTPUT
 AS
 BEGIN
-    DECLARE @StoredPassword NVARCHAR(255);
-
-    -- Retrieve the hashed password for the given username
-    SELECT @StoredPassword = Password
-    FROM Users
-    WHERE UserName = @UserName;
-
-    -- Verify the password if the username exists
-    IF @StoredPassword IS NOT NULL AND @StoredPassword = @Password
-        SET @IsValid = 1;
-    ELSE
-        SET @IsValid = 0;
+   SELECT @Password = Password
+   FROM Users
+   WHERE UserName = @UserName
 END;
 
 DROP PROCEDURE IF EXISTS ValidateLogin;

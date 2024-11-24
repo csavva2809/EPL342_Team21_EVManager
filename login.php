@@ -4,43 +4,66 @@ include 'connect.php'; // Ensure this file sets up the sqlsrv connection
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Retrieve login form data
-    $userName = $_POST['userName'];
-    $password = $_POST['password'];
+    $userName = trim($_POST['userName']);
+    $password = trim($_POST['password']);
+    $error_message = '';
 
-    // Initialize variables
-    $error_message = ''; // For error feedback
-    $storedPassword = ''; // To retrieve the hashed password
-
-    // Prepare the query to fetch the hashed password
-    $sqlFetch = "SELECT Password, Role FROM Users WHERE UserName = ?";
-    $stmtFetch = sqlsrv_query($conn, $sqlFetch, array($userName));
-
-    if ($stmtFetch === false) {
-        // Output error details
-        $error_message = "Error fetching hashed password: " . print_r(sqlsrv_errors(), true);
+    // Validate user input
+    if (empty($userName) || empty($password)) {
+        $error_message = "Username and password are required.";
     } else {
-        // Fetch the hashed password and role
-        $row = sqlsrv_fetch_array($stmtFetch, SQLSRV_FETCH_ASSOC);
-        sqlsrv_free_stmt($stmtFetch);
+        // Initialize output parameter for hashed password
+        $hashedPassword = null;
 
-        if ($row) {
-            $storedPassword = $row['Password'];
-            $userRole = $row['Role']; // Fetch the role directly
+        // Call ValidateLogin stored procedure
+        $validateLoginSql = "{CALL ValidateLogin(?, ?)}";
+        $validateParams = array(
+            array($userName, SQLSRV_PARAM_IN),  // Input: Username
+            array(&$hashedPassword, SQLSRV_PARAM_OUT, SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR)) // Output: Hashed password
+        );
 
-            // Verify the provided password against the stored hash
-            if (password_verify($password, $storedPassword)) {
-                // Successful login
-                $_SESSION['user'] = $userName;
-                $_SESSION['role'] = $userRole; // Store the role in the session
-                header("Location: index.php"); // Redirect to a dashboard or home page
-                exit();
+        $stmt = sqlsrv_query($conn, $validateLoginSql, $validateParams);
+
+        if ($stmt === false) {
+            $error_message = "Database error during login validation: " . print_r(sqlsrv_errors(), true);
+        } else {
+            sqlsrv_next_result($stmt); // Ensure output parameters are available
+            sqlsrv_free_stmt($stmt);
+
+            // Step 2: Verify password using password_verify
+            if ($hashedPassword && password_verify($password, $hashedPassword)) {
+                // Step 3: Retrieve user details (PersonID and Role) using GetUseDetails
+                $personId = null;
+                $role = null;
+
+                $getUserDetailsSql = "{CALL GetUseDetails(?, ?, ?)}";
+                $detailsParams = array(
+                    array($userName, SQLSRV_PARAM_IN),  // Input: Username
+                    array(&$personId, SQLSRV_PARAM_OUT, SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR)), // Output: PersonID
+                    array(&$role, SQLSRV_PARAM_OUT, SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR))      // Output: Role
+                );
+
+                $stmt = sqlsrv_query($conn, $getUserDetailsSql, $detailsParams);
+                if ($stmt === false) {
+                    $error_message = "Database error during user details retrieval: " . print_r(sqlsrv_errors(), true);
+                } else {
+                    sqlsrv_next_result($stmt);
+                    sqlsrv_free_stmt($stmt);
+
+                    if ($personId && $role) {
+                        $_SESSION['user'] = $userName;
+                        $_SESSION['personId'] = $personId;
+                        $_SESSION['role'] = $role;
+
+                        header("Location: user_dashboard.php");
+                        exit();
+                    } else {
+                        $error_message = "Failed to retrieve user details.";
+                    }
+                }
             } else {
-                // Invalid credentials
                 $error_message = "Invalid username or password.";
             }
-        } else {
-            // Username not found
-            $error_message = "Invalid username or password.";
         }
     }
 }
@@ -52,12 +75,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="style.css"> <!-- Link to your CSS file -->
+    <link rel="stylesheet" href="style.css"> <!-- Adjust the path if necessary -->
 </head>
 <body>
     <?php include 'navbar.php'; ?>
 
-    <div class="login-form">
+    <div class="form-container">
         <h2>Login</h2>
         <?php if (!empty($error_message)): ?>
             <p class="error"><?php echo htmlspecialchars($error_message); ?></p>

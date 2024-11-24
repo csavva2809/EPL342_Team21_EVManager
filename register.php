@@ -9,9 +9,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $firstName = $_POST['firstName'];
     $userName = $_POST['userName'];
     $email = $_POST['email'];
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Secure password hashing
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Securely hash the password
     $address = $_POST['address'];
-    $birthDate = $_POST['birthDate']; // Pass this as a string
+    $birthDate = $_POST['birthDate'];
     $phone = $_POST['phone'];
     $sex = $_POST['sex'];
 
@@ -27,9 +27,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         array($firstName, SQLSRV_PARAM_IN),
         array($userName, SQLSRV_PARAM_IN),
         array($email, SQLSRV_PARAM_IN),
-        array($password, SQLSRV_PARAM_IN),
+        array($password, SQLSRV_PARAM_IN), // Store hashed password
         array($address, SQLSRV_PARAM_IN),
-        array($birthDate, SQLSRV_PARAM_IN), // Pass as NVARCHAR(11)
+        array($birthDate, SQLSRV_PARAM_IN),
         array($phone, SQLSRV_PARAM_IN),
         array($sex, SQLSRV_PARAM_IN),
         array(&$success, SQLSRV_PARAM_OUT), // Output parameter
@@ -45,8 +45,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         // Advance the result set for output parameters
         sqlsrv_next_result($stmt);
-
-        // Free the statement
         sqlsrv_free_stmt($stmt);
 
         // Check the output parameters
@@ -60,6 +58,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
