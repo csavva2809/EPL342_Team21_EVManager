@@ -1,18 +1,19 @@
 --Creation of Users Table
 CREATE TABLE Users (
-    PersonID NVARCHAR(20) NOT NULL,
-    LastName NVARCHAR(25) NOT NULL,
-    FirstName NVARCHAR(25) NOT NULL,
-    UserName NVARCHAR(25) NOT NULL UNIQUE,
-    Email NVARCHAR(40) NOT NULL UNIQUE CHECK (Email LIKE '%@%'),
-    Password NVARCHAR(255) NOT NULL, 
-    Address NVARCHAR(50) NOT NULL,
-    BirthDate NVARCHAR(11) NOT NULL,
-    Phone NVARCHAR(15) NOT NULL,
-    Role NVARCHAR(10) DEFAULT 'user' CHECK (Role IN ('user','TOM', 'dealer', 'admin')),
-    Sex NVARCHAR NOT NULL CHECK (Sex IN ('male', 'female', 'other')),
-    CONSTRAINT PK_Users PRIMARY KEY (PersonID, UserName)
+    UserID INT IDENTITY(1,1) PRIMARY KEY, -- Auto-incrementing primary key
+    PersonID NVARCHAR(20) NOT NULL CHECK (LEN(PersonID) BETWEEN 5 AND 20), -- Ensure valid length
+    LastName NVARCHAR(25) NOT NULL CHECK (LEN(LastName) > 1), -- Ensure LastName is meaningful
+    FirstName NVARCHAR(25) NOT NULL CHECK (LEN(FirstName) > 1), -- Ensure FirstName is meaningful
+    UserName NVARCHAR(25) NOT NULL UNIQUE CHECK (LEN(UserName) >= 5), -- Minimum username length
+    Email NVARCHAR(40) NOT NULL UNIQUE CHECK (Email LIKE '%@%' AND Email LIKE '%.%'), -- Valid email format
+    PasswordHash NVARCHAR(255) NOT NULL CHECK (LEN(PasswordHash) >= 8), -- Ensure hashed passwords are stored
+    Address NVARCHAR(100) NOT NULL CHECK (LEN(Address) > 5), -- Ensure Address has sufficient detail
+    BirthDate DATE NOT NULL CHECK (DATEDIFF(YEAR, BirthDate, GETDATE()) >= 18), -- User must be at least 18 years old
+    Phone VARCHAR(15) NOT NULL CHECK (Phone LIKE '[0-9]%'), -- Ensure Phone contains only numbers
+    Role VARCHAR(10) DEFAULT 'user' NOT NULL CHECK (Role IN ('user', 'TOM', 'dealer', 'admin')), -- Role validation
+    Sex CHAR(6) DEFAULT 'other' NOT NULL CHECK (Sex IN ('male', 'female', 'other')) -- Valid values for Sex
 );
+
 DROP TABLE Users;
 
 --Creation of the Forms Table
@@ -60,3 +61,11 @@ CREATE TABLE Applications (
 	CONSTRAINT FK_Application FOREIGN KEY (PersonID, UserName) REFERENCES Users(PersonID, UserName)
 );
 
+-- Drop Foreign Key Constraints in Dependent Tables
+ALTER TABLE Documents DROP CONSTRAINT FK_Documents;
+ALTER TABLE Applications DROP CONSTRAINT FK_Application;
+-- Truncate Dependent Tables
+TRUNCATE TABLE Documents;
+TRUNCATE TABLE Applications;
+-- Drop the Users Table
+DROP TABLE Users;
