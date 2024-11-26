@@ -27,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         array($firstName, SQLSRV_PARAM_IN),
         array($userName, SQLSRV_PARAM_IN),
         array($email, SQLSRV_PARAM_IN),
-        array($password, SQLSRV_PARAM_IN), // Store hashed password
+        array($password, SQLSRV_PARAM_IN), 
         array($address, SQLSRV_PARAM_IN),
         array($birthDate, SQLSRV_PARAM_IN),
         array($phone, SQLSRV_PARAM_IN),

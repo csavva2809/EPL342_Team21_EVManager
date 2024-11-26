@@ -36,7 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $personId = null;
                 $role = null;
 
-                $getUserDetailsSql = "{CALL GetUseDetails(?, ?, ?)}";
+                $getUserDetailsSql = "{CALL GetUserDetails(?, ?, ?)}";
                 $detailsParams = array(
                     array($userName, SQLSRV_PARAM_IN),  // Input: Username
                     array(&$personId, SQLSRV_PARAM_OUT, SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR)), // Output: PersonID
