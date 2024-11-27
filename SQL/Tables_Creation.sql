@@ -14,6 +14,19 @@ CREATE TABLE Users (
     Sex CHAR(6) DEFAULT 'other' NOT NULL CHECK (Sex IN ('male', 'female', 'other'))
 );
 
+CREATE TABLE LegalEntities (
+    UserID INT IDENTITY(1,1) PRIMARY KEY,
+    CompanyName NVARCHAR(100) NOT NULL CHECK (LEN(CompanyName) > 2),
+    RegistrationNumber NVARCHAR(50) NOT NULL UNIQUE CHECK (LEN(RegistrationNumber) >= 5),
+    TaxNumber NVARCHAR(50) NOT NULL UNIQUE CHECK (LEN(TaxNumber) >= 5),
+    EstablishedDate DATE NOT NULL CHECK (EstablishedDate <= GETDATE()),
+    Address NVARCHAR(100) NOT NULL CHECK (LEN(Address) > 5),
+    Phone VARCHAR(15) NOT NULL CHECK (Phone LIKE '[0-9]%'),
+    Email NVARCHAR(40) NOT NULL UNIQUE CHECK (Email LIKE '%@%' AND Email LIKE '%.%'),
+	PasswordHash NVARCHAR(255) NOT NULL CHECK (LEN(PasswordHash) >= 8)
+);
+DROP TABLE LegalEntities;
+
 --Creation of the Forms Table
 CREATE TABLE Forms(
 	FormID NVARCHAR(20) NOT NULL,
@@ -32,16 +45,21 @@ VALUES
 (4, 'C15', 'OrderConfirmation(Bike)', '/~ksavva/public_html/epl342/dbpro/forms/C15.pdf'),
 (5, 'C16', 'ReceiveConfirmationForAllowanceTickets', '/~ksavva/public_html/epl342/dbpro/forms/C16.pdf')
 
---Creation of Documents Table
 CREATE TABLE Documents (
-    DocumentID INT IDENTITY(1,1) NOT NULL,
-    PersonID NVARCHAR(20) NOT NULL, 
-    UserName NVARCHAR(25) NOT NULL,
-    Path NVARCHAR(255) NOT NULL,
-    SubmitionDate NVARCHAR(10) NOT NULL, 
-    CONSTRAINT PK_Documents PRIMARY KEY (DocumentID),
-    CONSTRAINT FK_Documents FOREIGN KEY (PersonID, UserName) REFERENCES Users(PersonID, UserName)
+    DocumentID INT IDENTITY(1,1) PRIMARY KEY,
+    FileName NVARCHAR(255) NOT NULL,
+    CriteriaID INT NOT NULL,
+    FilePath NVARCHAR(255) NOT NULL,
+    SubmissionDate DATETIME DEFAULT GETDATE()
 );
+
+
+EXEC sp_help 'Documents';
+ALTER TABLE Documents
+ALTER COLUMN FileName NVARCHAR(255);
+ALTER TABLE Documents
+ALTER COLUMN FilePath NVARCHAR(255);
+
 
 --Creation of Applications Table
 CREATE TABLE Applications (
@@ -70,22 +88,16 @@ CREATE TABLE Grants (
     CONSTRAINT CK_SumPrice_GrantPrice CHECK (SumPrice >= GrantPrice)
 );
 
-DROP TABLE Grants;
--- Drop Foreign Key Constraints in Dependent Tables
-ALTER TABLE Documents DROP CONSTRAINT FK_Documents;
-ALTER TABLE Applications DROP CONSTRAINT FK_Application;
--- Truncate Dependent Tables
-TRUNCATE TABLE Documents;
-TRUNCATE TABLE Applications;
--- Drop the Users Table
-DROP TABLE Users;
+CREATE TABLE Criteria (
+    CriteriaID INT IDENTITY(1,1) PRIMARY KEY,
+    Description NVARCHAR(255) NOT NULL,
+    Category NVARCHAR(50) NOT NULL
+);
 
-DROP TABLE Documents;
-DROP TABLE Applications;
-
-//anthia
-
-SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH 
-FROM INFORMATION_SCHEMA.COLUMNS 
-WHERE TABLE_NAME = 'Grants' AND COLUMN_NAME = 'GrantCategory';
-
+CREATE TABLE GrantCriteria (
+    GrantID INT NOT NULL,          -- Refers to GrantID in the Grants table
+    CriteriaID INT NOT NULL,       -- Refers to CriteriaID in the Criteria table
+    PRIMARY KEY (GrantID, CriteriaID), -- Composite Primary Key (each Grant can have multiple criteria and each Criteria can belong to multiple grants)
+    FOREIGN KEY (GrantID) REFERENCES Grants(GrantID), -- Link to Grants table
+    FOREIGN KEY (CriteriaID) REFERENCES Criteria(CriteriaID) -- Link to Criteria table
+);

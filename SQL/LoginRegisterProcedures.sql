@@ -1,4 +1,9 @@
-﻿CREATE PROCEDURE RegisterUser
+﻿DROP PROCEDURE RegisterUser;
+DROP PROCEDURE RegisterLegalEntity;
+DROP PROCEDURE ValidateLogin;
+DROP PROCEDURE ValidateLegalEntityLogin;
+
+CREATE PROCEDURE RegisterUser
     @PersonID NVARCHAR(20),
     @LastName NVARCHAR(25),
     @FirstName NVARCHAR(25),
@@ -12,7 +17,8 @@
     @Success BIT OUTPUT,
     @Message NVARCHAR(255) OUTPUT
 AS
-BEGIN
+BEGIN 
+
     SET NOCOUNT ON;
 
     DECLARE @UsernameExists INT;
@@ -73,6 +79,54 @@ BEGIN
     END CATCH;
 END;
 
+CREATE PROCEDURE RegisterLegalEntity
+    @CompanyName NVARCHAR(100),
+    @RegistrationNumber NVARCHAR(50),
+    @TaxNumber NVARCHAR(50),
+    @EstablishedDate DATE,
+    @Address NVARCHAR(100),
+    @Phone VARCHAR(15),
+    @Email NVARCHAR(40),
+    @PasswordHash NVARCHAR(255),
+    @Success BIT OUTPUT,
+    @Message NVARCHAR(255) OUTPUT
+AS
+BEGIN
+    -- Check if the RegistrationNumber, TaxNumber, or Email already exists
+    IF EXISTS (SELECT 1 FROM LegalEntities WHERE RegistrationNumber = @RegistrationNumber)
+    BEGIN
+        SET @Success = 0;
+        SET @Message = 'Registration number already exists.';
+        RETURN;
+    END
+
+    IF EXISTS (SELECT 1 FROM LegalEntities WHERE TaxNumber = @TaxNumber)
+    BEGIN
+        SET @Success = 0;
+        SET @Message = 'Tax number already exists.';
+        RETURN;
+    END
+
+    IF EXISTS (SELECT 1 FROM LegalEntities WHERE Email = @Email)
+    BEGIN
+        SET @Success = 0;
+        SET @Message = 'Email already exists.';
+        RETURN;
+    END
+
+    BEGIN TRY
+        -- Insert the legal entity into the LegalEntities table
+        INSERT INTO LegalEntities (CompanyName, RegistrationNumber, TaxNumber, EstablishedDate, Address, Phone, Email, PasswordHash)
+        VALUES (@CompanyName, @RegistrationNumber, @TaxNumber, @EstablishedDate, @Address, @Phone, @Email, @PasswordHash);
+
+        SET @Success = 1;
+        SET @Message = 'Legal entity registered successfully.';
+    END TRY
+    BEGIN CATCH
+        SET @Success = 0;
+        SET @Message = ERROR_MESSAGE();
+    END CATCH
+END;
 
 CREATE PROCEDURE ValidateLogin
     @UserName NVARCHAR(25),
@@ -84,4 +138,16 @@ BEGIN
     SELECT @PasswordHash = PasswordHash
     FROM Users
     WHERE UserName = @UserName;
+END;
+
+CREATE PROCEDURE ValidateLegalEntityLogin
+	@Email NVARCHAR(40),
+	@PasswordHash NVARCHAR(255) OUTPUT
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+	SELECT @PasswordHash = PasswordHash
+	FROM LegalEntities
+	WHERE Email = @Email
 END;
