@@ -33,7 +33,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -45,39 +44,44 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
     <?php include 'navbar.php'; ?>
 
-    <div class="admin-dashboard">
+    <div class="dashboard-container">
         <h2>Admin Dashboard</h2>
-        <button id="changeRoleBtn">Change User Role</button>
+        <p>Welcome, <?php echo htmlspecialchars($_SESSION['user']); ?>!</p>
 
-        <!-- Form to change user role -->
-        <div id="changeRoleForm" style="display: none; margin-top: 20px;">
-            <h3>Change User Role</h3>
-            <?php if (!empty($error_message)): ?>
-                <p class="error"><?php echo htmlspecialchars($error_message); ?></p>
-            <?php elseif (!empty($success_message)): ?>
-                <p class="success"><?php echo htmlspecialchars($success_message); ?></p>
-            <?php endif; ?>
-            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-                <label for="targetUserName">Target Username:</label>
-                <input type="text" id="targetUserName" name="targetUserName" required>
+        <!-- Role Changing Section -->
+        <div class="role-management-section">
+            <button id="toggleFormBtn" class="btn">Change User Roles</button>
 
-                <label for="newRole">New Role:</label>
-                <select id="newRole" name="newRole" required>
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                    <option value="TOM">TOM</option>
-                    <option value="dealer">Dealer</option>
-                </select>
+            <!-- Form to change user role -->
+            <div id="roleChangeForm" style="display: none; margin-top: 20px;">
+                <h3>Change User Role</h3>
+                <?php if (!empty($error_message)): ?>
+                    <p class="error"><?php echo htmlspecialchars($error_message); ?></p>
+                <?php elseif (!empty($success_message)): ?>
+                    <p class="success"><?php echo htmlspecialchars($success_message); ?></p>
+                <?php endif; ?>
+                <form class="role-change-form" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+                    <label for="targetUserName">Target Username:</label>
+                    <input type="text" id="targetUserName" name="targetUserName" placeholder="Enter username" required>
 
-                <input type="submit" value="Change Role">
-            </form>
+                    <label for="newRole">New Role:</label>
+                    <select id="newRole" name="newRole" required>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                        <option value="TOM">TOM</option>
+                        <option value="dealer">Dealer</option>
+                    </select>
+
+                    <input type="submit" value="Change Role">
+                </form>
+            </div>
         </div>
     </div>
 
     <script>
-        // Toggle visibility of the change role form
-        document.getElementById('changeRoleBtn').addEventListener('click', function() {
-            const form = document.getElementById('changeRoleForm');
+        // JavaScript to toggle form visibility
+        document.getElementById('toggleFormBtn').addEventListener('click', function () {
+            const form = document.getElementById('roleChangeForm');
             form.style.display = form.style.display === 'none' ? 'block' : 'none';
         });
     </script>
