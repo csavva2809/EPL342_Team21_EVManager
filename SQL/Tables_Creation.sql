@@ -53,8 +53,9 @@ VALUES
 CREATE TABLE Documents (
     DocumentID INT IDENTITY(1,1) PRIMARY KEY,
 	ApplicationID NVARCHAR(20) NOT NULL,
-    FileName NVARCHAR(255) NOT NULL,
+    FileName NVARCHAR(255) NOT NULL CHECK (FileName LIKE '%.pdf' OR  FileName LIKE '%.jpeg' OR FileName LIKE'%.png'),
     FilePath NVARCHAR(255) NOT NULL,
+	Size INT CHECK (Size <= 2000000)
 	CONSTRAINT FK_Documents FOREIGN KEY (ApplicationID) REFERENCES Applications(ApplicationID)
 );
 
