@@ -1,16 +1,15 @@
-CREATE PROCEDURE GetUseDetails
+CREATE PROCEDURE GetUserDetails
 	@UserName NVARCHAR(25),
-	@PersonID NVARCHAR(20) OUTPUT,
+	@UserID INT OUTPUT,
 	@Role NVARCHAR(10) OUTPUT
 AS
 BEGIN
 	SELECT
-		@PersonID = PersonID,
+		@UserID = UserID,
 		@Role = Role
 	FROM Users
 	WHERE UserName = @UserName;
 END;
-
 
 CREATE PROCEDURE GetLegalEntityDetails
     @Email NVARCHAR(40),

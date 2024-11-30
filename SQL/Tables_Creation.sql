@@ -1,4 +1,4 @@
---Creation of Users Table
+﻿--Creation of Users Table
 CREATE TABLE Users (
     UserID INT IDENTITY(1,1) PRIMARY KEY,
     PersonID NVARCHAR(20) NOT NULL CHECK (LEN(PersonID) BETWEEN 5 AND 20),
@@ -25,7 +25,12 @@ CREATE TABLE LegalEntities (
     Email NVARCHAR(40) NOT NULL UNIQUE CHECK (Email LIKE '%@%' AND Email LIKE '%.%'),
 	PasswordHash NVARCHAR(255) NOT NULL CHECK (LEN(PasswordHash) >= 8)
 );
-DROP TABLE LegalEntities;
+
+CREATE TABLE ApplicationSequence (
+    GrantCategory NVARCHAR(10) PRIMARY KEY, -- Grant category (e.g., C1, C2)
+    LastNumber INT DEFAULT 0               -- Last used number for this grant category
+);
+
 
 --Creation of the Forms Table
 CREATE TABLE Forms(
@@ -47,46 +52,48 @@ VALUES
 
 CREATE TABLE Documents (
     DocumentID INT IDENTITY(1,1) PRIMARY KEY,
+	ApplicationID NVARCHAR(20) NOT NULL,
     FileName NVARCHAR(255) NOT NULL,
-    CriteriaID INT NOT NULL,
     FilePath NVARCHAR(255) NOT NULL,
-    SubmissionDate DATETIME DEFAULT GETDATE()
+	CONSTRAINT FK_Documents FOREIGN KEY (ApplicationID) REFERENCES Applications(ApplicationID)
 );
 
+DROP TABLE Documents;
 
-EXEC sp_help 'Documents';
-ALTER TABLE Documents
-ALTER COLUMN FileName NVARCHAR(255);
-ALTER TABLE Documents
-ALTER COLUMN FilePath NVARCHAR(255);
-
-
---Creation of Applications Table
 CREATE TABLE Applications (
-    ApplicationID NVARCHAR(20) NOT NULL ,
-    UserID NVARCHAR(20) NOT NULL,
-	UserName NVARCHAR(25) NOT NULL,
-    ApplicantType NVARCHAR(10) NOT NULL CHECK (ApplicantType IN ('individual', 'legal_entity')),
-    GrantCategory NVARCHAR(10) NOT NULL CHECK (GrantCategory IN ('C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10', 'C11', 'C12', 'C13', 'C14', 'C15', 'C16')),
-    ApplicationDate DATE NOT NULL,
-    VehicleType NVARCHAR(10) NOT NULL CHECK (VehicleType IN ('M1', 'M2', 'N1', 'N2', 'L')),
-    WithdrawalVehicleID NVARCHAR(20),
-    Status NVARCHAR(15) DEFAULT 'submitted' CHECK (Status IN ('submitted', 'approved', 'rejected', 'expired')),
-    ExpirationDate NVARCHAR(11) NOT NULL, 
-	CONSTRAINT PK_Application PRIMARY KEY (ApplicationID),
+    ApplicationID NVARCHAR(20) NOT NULL PRIMARY KEY, -- Format Γ<XX>.<YYYY>
+    UserID INT NOT NULL,                             -- Foreign key to Users table
+    UserType NVARCHAR(20) NOT NULL CHECK (UserType IN ('individual', 'legal_entity')),
+    GrantCategory NVARCHAR(10) NOT NULL,            -- Grant category (e.g., Γ1, Γ2, ...)
+    VehicleType NVARCHAR(10),                       -- M1, M2, N1, N2, L
+    WithdrawalVehicleID NVARCHAR(20) NULL,          -- Optional vehicle ID to withdraw
+    ApplicationDate DATE NOT NULL DEFAULT GETDATE(),-- Date of application submission
+    ExpirationDate DATE NULL,                   -- Expiration date (14 days from ApplicationDate)
+    Email NVARCHAR(255) NOT NULL,                   -- Email for communication
+    FOREIGN KEY (UserID) REFERENCES Users(UserID)   -- Foreign key to Users table
 );
+
+
+CREATE TABLE StatusHistory (
+    StatusID INT IDENTITY(1,1) PRIMARY KEY,
+    ApplicationID NVARCHAR(20) NOT NULL,
+    Status NVARCHAR(20) NOT NULL DEFAULT 'submitted' CHECK (Status IN ('submitted', 'approved', 'rejected', 'expired')),
+    StatusDate DATETIME NOT NULL DEFAULT GETDATE(), -- Timestamp of the status change
+    FOREIGN KEY (ApplicationID) REFERENCES Applications(ApplicationID) -- Foreign key to Applications
+);
+
 
 CREATE TABLE Grants (
     GrantID INT IDENTITY(1,1) PRIMARY KEY, -- Auto-incrementing primary key
     GrantCategory VARCHAR(5) NOT NULL CHECK (GrantCategory IN ('C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10', 'C11', 'C12', 'C13', 'C14', 'C15', 'C16')), -- Valid categories
     Description NVARCHAR(255) NOT NULL,
     GrantPrice FLOAT NOT NULL CHECK (GrantPrice > 0), -- Must be positive
-    SumPrice FLOAT NOT NULL CHECK (SumPrice > 0), -- Must be positive
-    AvailableGrants INT NOT NULL CHECK (AvailableGrants >= 0), -- Non-negative value
-
-    -- Table-level CHECK constraint for logical comparison between columns
-    CONSTRAINT CK_SumPrice_GrantPrice CHECK (SumPrice >= GrantPrice)
+    SumPrice FLOAT NOT NULL CHECK (SumPrice >= 0), -- Must be positive
+    WithdrawalVehicle BIT NOT NULL DEFAULT 0, -- TRUE if withdrawal of a vehicle is required
+    Justification NVARCHAR(255) NULL -- Justification name (NULL if not needed)
 );
+
+DROP TABLE Grants;
 
 CREATE TABLE Criteria (
     CriteriaID INT IDENTITY(1,1) PRIMARY KEY,
@@ -101,3 +108,5 @@ CREATE TABLE GrantCriteria (
     FOREIGN KEY (GrantID) REFERENCES Grants(GrantID), -- Link to Grants table
     FOREIGN KEY (CriteriaID) REFERENCES Criteria(CriteriaID) -- Link to Criteria table
 );
+
+DROP TABLE GrantCriteria;

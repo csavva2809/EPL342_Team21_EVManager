@@ -106,26 +106,6 @@ BEGIN
 END;
 
 
-CREATE PROCEDURE InsertApplication
-    @ApplicationID NVARCHAR(20),
-    @UserID NVARCHAR(20),
-    @UserName NVARCHAR(25),
-    @ApplicantType NVARCHAR(10),
-    @GrantCategory NVARCHAR(10),
-    @ApplicationDate DATE,
-    @VehicleType NVARCHAR(10),
-    @WithdrawalVehicleID NVARCHAR(20),
-    @Status NVARCHAR(15),
-    @ExpirationDate NVARCHAR(11)
-AS
-BEGIN
-    -- Insert the application data into the Applications table
-    INSERT INTO Applications (ApplicationID, UserID, UserName, ApplicantType, GrantCategory, ApplicationDate, 
-                             VehicleType, WithdrawalVehicleID, Status, ExpirationDate)
-    VALUES (@ApplicationID, @UserID, @UserName, @ApplicantType, @GrantCategory, @ApplicationDate, 
-            @VehicleType, @WithdrawalVehicleID, @Status, @ExpirationDate);
-END;
-
 CREATE PROCEDURE InsertDocument
     @FileName NVARCHAR(255),
     @CriteriaID INT,  -- Ensure this is INT if CriteriaID is INT in the Criteria table
