@@ -1,4 +1,5 @@
 ﻿DROP PROCEDURE AddGrant;
+
 CREATE PROCEDURE AddGrant
     @GrantCategory VARCHAR(5),
     @Description NVARCHAR(255),
@@ -250,22 +251,15 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Select all columns from the Grant table
     SELECT 
         GrantID,
         GrantCategory,
         Description,
-        GrantPrice
+        GrantPrice,
+        SumPrice -- Include SumPrice
     FROM Grants;
 END;
 
-CREATE PROCEDURE GetAllGrantCategories
-AS
-BEGIN
-    SELECT GrantID, GrantCategory
-    FROM Grants
-    ORDER BY GrantID; -- Or use another column for ordering
-END;
 DROP PROCEDURE GetAllGrantCategories;
 
 CREATE PROCEDURE GetAllGrantCategories

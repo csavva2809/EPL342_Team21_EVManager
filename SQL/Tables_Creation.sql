@@ -55,11 +55,10 @@ CREATE TABLE Documents (
 	ApplicationID NVARCHAR(20) NOT NULL,
     FileName NVARCHAR(255) NOT NULL CHECK (FileName LIKE '%.pdf' OR  FileName LIKE '%.jpeg' OR FileName LIKE'%.png'),
     FilePath NVARCHAR(255) NOT NULL,
-	Size INT CHECK (Size <= 2000000)
+	Size INT CHECK (Size <= 2000000),
+	DocType NVARCHAR(15) NOT NULL CHECK (DocType IN ('Order' , 'Justification', 'Supportive'))
 	CONSTRAINT FK_Documents FOREIGN KEY (ApplicationID) REFERENCES Applications(ApplicationID)
 );
-
-DROP TABLE Documents;
 
 CREATE TABLE Applications (
     ApplicationID NVARCHAR(20) NOT NULL PRIMARY KEY, -- Format Γ<XX>.<YYYY>
@@ -83,7 +82,6 @@ CREATE TABLE StatusHistory (
     FOREIGN KEY (ApplicationID) REFERENCES Applications(ApplicationID) -- Foreign key to Applications
 );
 
-
 CREATE TABLE Grants (
     GrantID INT IDENTITY(1,1) PRIMARY KEY, -- Auto-incrementing primary key
     GrantCategory VARCHAR(5) NOT NULL CHECK (GrantCategory IN ('C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10', 'C11', 'C12', 'C13', 'C14', 'C15', 'C16')), -- Valid categories
@@ -93,8 +91,6 @@ CREATE TABLE Grants (
     WithdrawalVehicle BIT NOT NULL DEFAULT 0, -- TRUE if withdrawal of a vehicle is required
     Justification NVARCHAR(255) NULL -- Justification name (NULL if not needed)
 );
-
-DROP TABLE Grants;
 
 CREATE TABLE Criteria (
     CriteriaID INT IDENTITY(1,1) PRIMARY KEY,
@@ -110,4 +106,23 @@ CREATE TABLE GrantCriteria (
     FOREIGN KEY (CriteriaID) REFERENCES Criteria(CriteriaID) -- Link to Criteria table
 );
 
-DROP TABLE GrantCriteria;
+CREATE TABLE Vehicles(
+	VehicleID INT  IDENTITY(1,1) PRIMARY KEY,
+	Maker NVARCHAR(25) NOT NULL,
+	Model NVARCHAR(25) NOT NULL,
+	CO2grPerKm FLOAT NOT NULL,
+	Price INT NOT NULL
+);
+
+CREATE TABLE Orders(
+	OrderID INT IDENTITY(1,1) PRIMARY KEY,
+	ApplicationID  NVARCHAR(20) NOT NULL,
+	VehicleID INT NOT NULL,
+	DocumentID INT NOT NULL,
+	ExpectedRegisterDate CHAR(15),
+	FOREIGN KEY (ApplicationID) REFERENCES Applications(ApplicationID), 
+    FOREIGN KEY (VehicleID) REFERENCES Vehicles(VehicleID),
+	FOREIGN KEY (DocumentID) REFERENCES Documents(DocumentID)
+);
+
+

@@ -10,7 +10,6 @@ END;
 
 DROP TRIGGER trg_SetExpirationDate;
 
-DROP PROCEDURE InsertApplication;
 CREATE PROCEDURE InsertApplication
     @UserID INT,
     @UserType NVARCHAR(20),
@@ -19,68 +18,45 @@ CREATE PROCEDURE InsertApplication
     @WithdrawalVehicleID NVARCHAR(20) = NULL,
     @ApplicationDate DATE,
     @Email NVARCHAR(255),
-    @FileName NVARCHAR(255) = NULL, -- File name parameter
-    @FilePath NVARCHAR(255) = NULL, -- File path parameter
-    @Size INT = NULL, -- File size parameter
+    @FileName NVARCHAR(255) = NULL,  -- File name parameter
+    @FilePath NVARCHAR(255) = NULL,  -- File path parameter
+    @Size INT = NULL,                -- File size parameter
+    @DocType NVARCHAR(15) = NULL,    -- DocType parameter
     @ApplicationID NVARCHAR(20) OUTPUT
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Declare the @Status variable to hold the status from the UploadDocument procedure
-    DECLARE @Status NVARCHAR(50);
+    DECLARE @NextID INT, @Error NVARCHAR(255);
 
-    -- Step 1: Validate if sufficient grants are available
-    IF NOT EXISTS (
-        SELECT 1
-        FROM Grants
-        WHERE GrantCategory = @GrantCategory
-          AND SumPrice >= GrantPrice -- Ensure sufficient funds for at least one grant
-    )
-    BEGIN
-        RAISERROR ('Insufficient funds available for the selected grant category.', 16, 1);
-        RETURN;
-    END;
-
-    -- Step 2: Generate the ApplicationID in the format Γ<XX>.<YYYY>
-    DECLARE @NextID INT;
-    SELECT @NextID = ISNULL(MAX(CAST(SUBSTRING(ApplicationID, CHARINDEX('.', ApplicationID) + 1, LEN(ApplicationID)) AS INT)), 0) + 1
-    FROM Applications
-    WHERE GrantCategory = @GrantCategory;
-
-    SET @ApplicationID = CONCAT('Γ', @GrantCategory, '.', FORMAT(@NextID, 'D4'));
-
-    -- Step 3: Insert the application into the Applications table
     BEGIN TRY
-        BEGIN TRANSACTION;
+        -- Generate ApplicationID
+        SELECT @NextID = ISNULL(MAX(CAST(SUBSTRING(ApplicationID, CHARINDEX('.', ApplicationID) + 1, LEN(ApplicationID)) AS INT)), 0) + 1
+        FROM Applications
+        WHERE GrantCategory = @GrantCategory;
 
+        SET @ApplicationID = CONCAT('Γ', @GrantCategory, '.', FORMAT(@NextID, 'D4'));
+
+        -- Insert Application
         INSERT INTO Applications (ApplicationID, UserID, UserType, GrantCategory, VehicleType, WithdrawalVehicleID, ApplicationDate, Email)
         VALUES (@ApplicationID, @UserID, @UserType, @GrantCategory, @VehicleType, @WithdrawalVehicleID, @ApplicationDate, @Email);
 
-        -- Step 4: Decrement the SumPrice for the grant category
+        -- Adjust Grant SumPrice (decrement it by GrantPrice)
         UPDATE Grants
         SET SumPrice = SumPrice - GrantPrice
         WHERE GrantCategory = @GrantCategory;
 
-        -- Step 5: If FileName, FilePath, and Size are provided, call the UploadDocument procedure
-        IF @FileName IS NOT NULL AND @FilePath IS NOT NULL AND @Size IS NOT NULL
+        -- Upload Document if provided
+        IF @FileName IS NOT NULL AND @FilePath IS NOT NULL AND @Size IS NOT NULL AND @DocType IS NOT NULL
         BEGIN
-            EXEC UploadDocument @ApplicationID, @FileName, @FilePath, @Size, @Status OUTPUT;
-
-            -- Check the status returned by UploadDocument
-            IF @Status <> 'Success'
-            BEGIN
-                THROW 50000, 'Error uploading the document.', 1;
-            END;
+            EXEC UploadDocument @ApplicationID, @FileName, @FilePath, @Size, @DocType;
         END;
 
-        COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
-
-        -- Re-throw the error for debugging
-        THROW;
+        -- Capture and re-throw errors
+        SET @Error = ERROR_MESSAGE();
+        THROW 50000, @Error, 1;
     END CATCH;
 END;
 
@@ -188,5 +164,27 @@ END;
     INSERT INTO Applications (ApplicationID, UserID, UserType, GrantCategory, VehicleType, WithdrawalVehicleID, ApplicationDate, ExpirationDate, Email)
     SELECT ApplicationID, UserID, UserType, GrantCategory, VehicleType, WithdrawalVehicleID, ApplicationDate, ExpirationDate, Email
     FROM inserted;
+END;
+
+CREATE PROCEDURE DisplayApplications
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Select all records from the Applications table along with user details (if needed)
+    SELECT 
+        A.ApplicationID,
+        A.UserID,
+        U.Username AS UserName, -- Assuming Users table has a Username column
+        A.UserType,
+        A.GrantCategory,
+        A.VehicleType,
+        A.WithdrawalVehicleID,
+        A.ApplicationDate,
+        A.ExpirationDate,
+        A.Email
+    FROM Applications A
+    INNER JOIN Users U ON A.UserID = U.UserID -- Join to fetch user details
+    ORDER BY A.ApplicationDate DESC; -- Sort by most recent applications
 END;
 
