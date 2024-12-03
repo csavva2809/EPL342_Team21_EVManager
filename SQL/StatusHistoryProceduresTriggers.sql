@@ -32,7 +32,8 @@ EXEC DisplayStatusHistory;
 CREATE PROCEDURE UpdateApplicationStatus
     @UserID INT,
     @ApplicationID NVARCHAR(20),
-    @NewStatus NVARCHAR(20)
+    @NewStatus NVARCHAR(20),
+    @Comments NVARCHAR(500) = NULL -- Allow NULL for comments
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -73,9 +74,9 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Update the application's status in StatusHistory
-        INSERT INTO StatusHistory (ApplicationID, Status, StatusDate)
-        VALUES (@ApplicationID, @NewStatus, GETDATE());
+        -- Insert the status change and comments into the StatusHistory table
+        INSERT INTO StatusHistory (ApplicationID, Status, StatusDate, Comments)
+        VALUES (@ApplicationID, @NewStatus, GETDATE(), @Comments);
 
         COMMIT TRANSACTION;
 
@@ -110,3 +111,28 @@ BEGIN
       AND a.ExpirationDate IS NOT NULL
       AND sh.Status IN ('submitted', 'approved');
 END;
+
+CREATE TRIGGER IncrementGrantSumPriceOnRejectionOrExpiration
+ON StatusHistory
+AFTER INSERT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Check if the inserted status is 'rejected' or 'expired'
+    IF EXISTS (
+        SELECT 1 
+        FROM inserted
+        WHERE Status IN ('rejected', 'expired')
+    )
+    BEGIN
+        -- Update the SumPrice of the relevant grant
+        UPDATE Grants
+        SET SumPrice = SumPrice + GrantPrice
+        FROM Grants
+        INNER JOIN Applications ON Grants.GrantCategory = Applications.GrantCategory
+        INNER JOIN inserted ON Applications.ApplicationID = inserted.ApplicationID
+        WHERE inserted.Status IN ('rejected', 'expired');
+    END
+END;
+

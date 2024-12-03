@@ -25,4 +25,14 @@ BEGIN
     END CATCH
 END;
 
+
+CREATE PROCEDURE ViewVehicle
+AS
+BEGIN
+    SELECT *
+	FROM Vehicles
+END;
+
+EXEC ViewVehicle;
+
 DROP PROCEDURE AddVehicle;

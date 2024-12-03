@@ -79,6 +79,7 @@ CREATE TABLE StatusHistory (
     ApplicationID NVARCHAR(20) NOT NULL,
     Status NVARCHAR(20) NOT NULL DEFAULT 'submitted' CHECK (Status IN ('submitted', 'approved', 'rejected', 'expired')),
     StatusDate DATETIME NOT NULL DEFAULT GETDATE(), -- Timestamp of the status change
+	Comments NVARCHAR(500) NULL,
     FOREIGN KEY (ApplicationID) REFERENCES Applications(ApplicationID) -- Foreign key to Applications
 );
 
@@ -126,3 +127,53 @@ CREATE TABLE Orders(
 );
 
 
+-- Drop existing foreign key constraints and recreate them with ON DELETE CASCADE
+
+-- Documents Table
+ALTER TABLE Documents
+ADD CONSTRAINT FK_Documents
+FOREIGN KEY (ApplicationID) REFERENCES Applications(ApplicationID) ON DELETE CASCADE;
+
+-- StatusHistory Table
+ALTER TABLE StatusHistory DROP CONSTRAINT FK_StatusHistory_ApplicationID;
+ALTER TABLE StatusHistory
+ADD CONSTRAINT FK_StatusHistory_ApplicationID
+FOREIGN KEY (ApplicationID) REFERENCES Applications(ApplicationID) ON DELETE CASCADE;
+
+-- Orders Table
+ALTER TABLE Orders
+ADD CONSTRAINT FK_Orders_ApplicationID
+FOREIGN KEY (ApplicationID) REFERENCES Applications(ApplicationID) ON DELETE CASCADE;
+ALTER TABLE Orders
+ADD CONSTRAINT FK_Orders_VehicleID
+FOREIGN KEY (VehicleID) REFERENCES Vehicles(VehicleID) ON DELETE CASCADE;
+ALTER TABLE Orders
+ADD CONSTRAINT FK_Orders_DocumentID
+FOREIGN KEY (DocumentID) REFERENCES Documents(DocumentID) ON DELETE CASCADE;
+
+-- Applications Table
+ALTER TABLE Applications
+ADD CONSTRAINT FK_Applications_UserID
+FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE;
+
+-- GrantCriteria Table
+ALTER TABLE GrantCriteria
+ADD CONSTRAINT FK_GrantCriteria_GrantID
+FOREIGN KEY (GrantID) REFERENCES Grants(GrantID) ON DELETE CASCADE;
+ALTER TABLE GrantCriteria
+ADD CONSTRAINT FK_GrantCriteria_CriteriaID
+FOREIGN KEY (CriteriaID) REFERENCES Criteria(CriteriaID) ON DELETE CASCADE;
+
+-- LegalEntities Table
+ALTER TABLE LegalEntities
+ADD CONSTRAINT FK_LegalEntities_UserID
+FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE;
+
+-- Vehicles Table
+-- No updates needed for cascading delete, as it depends only on itself.
+
+-- Forms Table
+-- No updates needed for cascading delete, as it depends only on itself.
+
+-- ApplicationSequence Table
+-- No updates needed for cascading delete, as it depends only on itself.

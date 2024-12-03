@@ -181,7 +181,7 @@ BEGIN
 END;
 
 DECLARE @Year INT = 2024;
-DECLARE @MinApplications INT = 5;
+DECLARE @MinApplications INT = 2;
 EXEC GetCategoriesWithMinApplications @Year, @MinApplications;
 
 
@@ -214,53 +214,9 @@ END;
 
 
 DECLARE @StartDate DATE = '2024-12-01';
-DECLARE @EndDate DATE = '2024-12-01';
+DECLARE @EndDate DATE = '2024-12-02';
 EXEC GetApplicationsByDateRange @StartDate,@EndDate;
 
-CREATE PROCEDURE GetApplicationsByGrantCategory
-    @GrantCategories NVARCHAR(MAX) -- Comma-separated list of categories
-AS
-BEGIN
-    -- Validate input
-    IF @GrantCategories IS NULL OR LEN(@GrantCategories) = 0
-    BEGIN
-        PRINT 'GrantCategories cannot be NULL or empty.'
-        RETURN;
-    END
-
-    -- Convert the comma-separated list into a table variable for filtering
-    DECLARE @Categories TABLE (GrantCategory NVARCHAR(10));
-    DECLARE @Category NVARCHAR(10);
-    DECLARE @Pos INT;
-
-    -- Split the input string into individual categories and insert into the table variable
-    WHILE LEN(@GrantCategories) > 0
-    BEGIN
-        SET @Pos = CHARINDEX(',', @GrantCategories);
-        IF @Pos = 0
-        BEGIN
-            SET @Category = LTRIM(RTRIM(@GrantCategories));
-            SET @GrantCategories = '';
-        END
-        ELSE
-        BEGIN
-            SET @Category = LTRIM(RTRIM(SUBSTRING(@GrantCategories, 1, @Pos - 1)));
-            SET @GrantCategories = SUBSTRING(@GrantCategories, @Pos + 1, LEN(@GrantCategories) - @Pos);
-        END
-
-        IF LEN(@Category) > 0
-            INSERT INTO @Categories (GrantCategory) VALUES (@Category);
-    END
-
-    -- Select applications matching the specified grant categories
-    SELECT ApplicationID, UserID, UserType, GrantCategory, VehicleType, WithdrawalVehicleID, ApplicationDate, ExpirationDate, Email
-    FROM Applications
-    WHERE GrantCategory IN (SELECT GrantCategory FROM @Categories)
-    ORDER BY GrantCategory, ApplicationDate;
-END;
-
--- Replace with your desired grant categories (comma-separated)
-EXEC GetApplicationsByGrantCategory @GrantCategories = 'C4,';
 
 CREATE PROCEDURE GetApplicationsByApplicantType
     @ApplicantTypes NVARCHAR(MAX) -- Comma-separated list of applicant types (e.g., 'individual,legal_entity')
@@ -305,4 +261,33 @@ BEGIN
 END;
 
 -- Replace with your desired applicant types (comma-separated)
-EXEC GetApplicationsByApplicantType @ApplicantTypes = 'Individual';
+EXEC GetApplicationsByApplicantType @ApplicantType = 'Individual';
+
+
+ALTER PROCEDURE GetApplicationsByApplicantType
+    @ApplicantType NVARCHAR(20)
+AS
+BEGIN
+    SELECT *
+    FROM Applications
+    WHERE UserType = @ApplicantType
+    ORDER BY ApplicationDate;
+END;
+
+
+
+
+EXEC GetApplicationsByGrantCategory 'C4,C1,C14';
+
+
+DROP PROCEDURE GetApplicationsByGrantCategory;
+CREATE PROCEDURE GetApplicationsByGrantCategory
+    @GrantCategory NVARCHAR(10)
+AS
+BEGIN
+    -- Fetch applications matching the specified single grant category
+    SELECT *
+    FROM Applications
+    WHERE GrantCategory = @GrantCategory
+    ORDER BY ApplicationDate;
+END;

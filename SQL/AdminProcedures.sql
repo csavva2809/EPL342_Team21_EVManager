@@ -54,3 +54,24 @@ EXEC ChangeRole
     @AdminUserName = 'emily.taylor1', 
     @TargetUserName = 'emily.taylor1', 
     @NewRole = 'dealer';
+
+-- Create a stored procedure to fetch application statuses
+CREATE PROCEDURE GetApplicationStatuses
+AS
+BEGIN
+    SELECT 
+        a.ApplicationID, 
+        u.UserName, 
+        a.Email, 
+        sh.Status, 
+        sh.StatusDate 
+    FROM Applications a
+    INNER JOIN StatusHistory sh ON a.ApplicationID = sh.ApplicationID
+    INNER JOIN Users u ON a.UserID = u.UserID
+    WHERE sh.StatusID = (
+        SELECT MAX(StatusID)
+        FROM StatusHistory
+        WHERE ApplicationID = a.ApplicationID
+    )
+    ORDER BY sh.StatusDate DESC;
+END
