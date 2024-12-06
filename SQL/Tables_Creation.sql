@@ -1,4 +1,6 @@
-﻿--Creation of Users Table
+﻿SELECT MAX(UserID) AS MaxUserID FROM Users;
+
+--Creation of Users Table
 CREATE TABLE Users (
     UserID INT IDENTITY(1,1) PRIMARY KEY,
     PersonID NVARCHAR(20) NOT NULL CHECK (LEN(PersonID) BETWEEN 5 AND 20),
@@ -13,9 +15,8 @@ CREATE TABLE Users (
     Role VARCHAR(10) DEFAULT 'user' NOT NULL CHECK (Role IN ('user', 'TOM', 'dealer', 'admin')),
     Sex CHAR(6) DEFAULT 'other' NOT NULL CHECK (Sex IN ('male', 'female', 'other'))
 );
-
 CREATE TABLE LegalEntities (
-    UserID INT IDENTITY(1,1) PRIMARY KEY,
+    UserID INT PRIMARY KEY DEFAULT NEXT VALUE FOR SharedUserIDSequence,
     CompanyName NVARCHAR(100) NOT NULL CHECK (LEN(CompanyName) > 2),
     RegistrationNumber NVARCHAR(50) NOT NULL UNIQUE CHECK (LEN(RegistrationNumber) >= 5),
     TaxNumber NVARCHAR(50) NOT NULL UNIQUE CHECK (LEN(TaxNumber) >= 5),
@@ -23,7 +24,7 @@ CREATE TABLE LegalEntities (
     Address NVARCHAR(100) NOT NULL CHECK (LEN(Address) > 5),
     Phone VARCHAR(15) NOT NULL CHECK (Phone LIKE '[0-9]%'),
     Email NVARCHAR(40) NOT NULL UNIQUE CHECK (Email LIKE '%@%' AND Email LIKE '%.%'),
-	PasswordHash NVARCHAR(255) NOT NULL CHECK (LEN(PasswordHash) >= 8)
+    PasswordHash NVARCHAR(255) NOT NULL CHECK (LEN(PasswordHash) >= 8)
 );
 
 CREATE TABLE ApplicationSequence (
@@ -61,17 +62,30 @@ CREATE TABLE Documents (
 );
 
 CREATE TABLE Applications (
-    ApplicationID NVARCHAR(20) NOT NULL PRIMARY KEY, -- Format Γ<XX>.<YYYY>
-    UserID INT NOT NULL,                             -- Foreign key to Users table
+    ApplicationID NVARCHAR(20) NOT NULL PRIMARY KEY,
+    UserID INT NOT NULL,
     UserType NVARCHAR(20) NOT NULL CHECK (UserType IN ('individual', 'legal_entity')),
-    GrantCategory NVARCHAR(10) NOT NULL,            -- Grant category (e.g., Γ1, Γ2, ...)
-    VehicleType NVARCHAR(10),                       -- M1, M2, N1, N2, L
-    WithdrawalVehicleID NVARCHAR(20) NULL,          -- Optional vehicle ID to withdraw
-    ApplicationDate DATE NOT NULL DEFAULT GETDATE(),-- Date of application submission
-    ExpirationDate DATE NULL,                   -- Expiration date (14 days from ApplicationDate)
-    Email NVARCHAR(255) NOT NULL,                   -- Email for communication
-    FOREIGN KEY (UserID) REFERENCES Users(UserID)   -- Foreign key to Users table
+    GrantCategory NVARCHAR(10) NOT NULL,
+    VehicleType NVARCHAR(10),
+    WithdrawalVehicleID NVARCHAR(20) NULL,
+    ApplicationDate DATE NOT NULL DEFAULT GETDATE(),
+    ExpirationDate DATE NULL,
+    CONSTRAINT FK_Applications_Users_UserID FOREIGN KEY (UserID) REFERENCES Users(UserID),
+    CONSTRAINT FK_Applications_LegalEntities_UserID FOREIGN KEY (UserID) REFERENCES LegalEntities(UserID)
 );
+
+
+
+
+-- Add foreign key referencing Users.UserID
+ALTER TABLE Applications
+ADD CONSTRAINT FK_Applications_Users_UserID
+FOREIGN KEY (UserID) REFERENCES Users(UserID);
+
+-- Add foreign key referencing LegalEntities.UserID
+ALTER TABLE Applications
+ADD CONSTRAINT FK_Applications_LegalEntities_UserID
+FOREIGN KEY (UserID) REFERENCES LegalEntities(UserID);
 
 
 CREATE TABLE StatusHistory (

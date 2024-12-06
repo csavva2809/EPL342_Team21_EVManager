@@ -55,7 +55,6 @@ if ($stmt === false) {
                     <tr>
                         <th>Category</th>
                         <th>Description</th>
-                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -63,9 +62,6 @@ if ($stmt === false) {
                         <tr>
                             <td><?php echo htmlspecialchars($row['Category']); ?></td>
                             <td><?php echo htmlspecialchars($row['Description']); ?></td>
-                            <td>
-                                <!-- Button to upload a document for each criteria -->
-                                <a href="upload_document.php?criteria_id=<?php echo $row['CriteriaID']; ?>" class="btn">Upload Document</a>
                             </td>
                         </tr>
                     <?php endforeach; ?>

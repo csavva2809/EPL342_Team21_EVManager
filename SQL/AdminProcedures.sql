@@ -51,9 +51,9 @@ BEGIN
 END;
 
 EXEC ChangeRole 
-    @AdminUserName = 'emily.taylor1', 
-    @TargetUserName = 'emily.taylor1', 
-    @NewRole = 'dealer';
+    @AdminUserName = 'user2041', 
+    @TargetUserName = 'ksavva05', 
+    @NewRole = 'admin';
 
 -- Create a stored procedure to fetch application statuses
 CREATE PROCEDURE GetApplicationStatuses

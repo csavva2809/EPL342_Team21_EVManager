@@ -2,12 +2,29 @@
 session_start();
 include 'connect.php'; // Ensure this file sets up the SQL Server connection
 
+$show_modal = false; // Initialize modal flag
+
 // Ensure the user is logged in
 if (!isset($_SESSION['UserID'])) {
-    die("User not logged in. Redirect to login.");
+    $show_modal = true; // Set modal flag if the user is not logged in
 }
 
+
 $userId = $_SESSION['UserID'];
+$userEmail = '';
+
+// Fetch the user's email (and any other necessary details)
+$sql = "SELECT Email FROM Users WHERE UserID = ?";
+$params = array($userId);
+$stmt = sqlsrv_query($conn, $sql, $params);
+
+if ($stmt === false) {
+    die("Error fetching user data: " . print_r(sqlsrv_errors(), true));
+} else {
+    $userData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    $userEmail = $userData['Email'] ?? '';  // Default to empty if not found
+    sqlsrv_free_stmt($stmt);
+}
 
 // Initialize error and success messages
 $error_message = '';
@@ -32,9 +49,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['grantCategory'])) {
     // Sanitize inputs
     $grantCategory = $_POST['grantCategory'] ?? '';
     $vehicleType = $_POST['vehicleType'] ?? '';
-    $email = $_POST['email'] ?? '';
+    $email = $_POST['email'] ?? $userEmail; // Use the existing email if not provided
     $applicationDate = date('Y-m-d');
     $withdrawalVehicleID = $_POST['withdrawalVehicleID'] ?? null; // Only if visible for the category
+    $docType = 'Justification'; // Hardcoded DocType for this scenario
     $userID = $_SESSION['UserID'];
     $userType = $_SESSION['userType'];
     $applicationID = null;
@@ -62,10 +80,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['grantCategory'])) {
         $upload_dir = '/home/students/cs/2021/ksavva05/public_html/epl342/dbpro/filled_forms/'; // Update path if needed
         $original_file_name = $_FILES["document"]["name"];
         $fileSize = $_FILES["document"]["size"]; // Get file size in bytes
+        $fileExtension = pathinfo($original_file_name, PATHINFO_EXTENSION);
+
+        // Validate file type
+        if (!in_array(strtolower($fileExtension), ['pdf', 'jpeg', 'png'])) {
+            $error_message .= "Invalid file type. Only PDF, JPEG, and PNG are allowed.<br>";
+        }
 
         // Validate file size
         if ($fileSize > 2000000) { // 2 MB limit
-            $error_message .= "The uploaded file exceeds the size limit of 2 MB.";
+            $error_message .= "The uploaded file exceeds the size limit of 2 MB.<br>";
         } else {
             $fileName = uniqid("doc_") . "_" . $original_file_name;
             $filePath = $upload_dir . $fileName;
@@ -81,7 +105,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['grantCategory'])) {
 
     // Insert application and upload document if no errors
     if (empty($error_message)) {
-        $insertApplicationSql = "{CALL InsertApplication(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        $insertApplicationSql = "{CALL InsertApplication(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
         $params = array(
             array($userID, SQLSRV_PARAM_IN),
             array($userType, SQLSRV_PARAM_IN),
@@ -93,6 +117,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['grantCategory'])) {
             array($fileName, SQLSRV_PARAM_IN), // File name parameter
             array($filePath, SQLSRV_PARAM_IN), // File path parameter
             array($fileSize, SQLSRV_PARAM_IN), // File size parameter
+            array($docType, SQLSRV_PARAM_IN), // DocType parameter
             array(&$applicationID, SQLSRV_PARAM_OUT, SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_CHAR))
         );
 
@@ -123,6 +148,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['grantCategory'])) {
 </head>
 <body>
     <?php include 'navbar.php'; ?>
+    <?php if ($show_modal): ?>
+    <div id="loginModal" class="modal" style="display: block;">
+        <div class="modal-content">
+            <h2>Πρέπει να συνδεθείτε</h2>
+            <p>Για να υποβάλετε αίτηση, πρέπει να συνδεθείτε ή να εγγραφείτε.</p>
+            <div class="modal-buttons">
+                <a href="login.php" class="btn">Σύνδεση</a>
+                <a href="register.php" class="btn btn-register">Εγγραφή</a>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
 
     <div class="apply-container">
         <h2>Σχέδιο Προώθησης Της Ηλεκτροκίνησης Στην Κύπρο</h2>
@@ -151,7 +188,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['grantCategory'])) {
             </select>
 
             <label for="email">Διεύθυνση ηλεκτρονικού ταχυδρομείου:</label>
-            <input type="email" id="email" name="email" placeholder="email_address@email.com" required>
+            <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($userEmail); ?>" placeholder="email_address@email.com" required readonly>
 
             <div id="withdrawalVehicleDiv" style="display: none;">
                 <label for="withdrawalVehicleID">Αριθμός Οχήματος προς Απόσυρση:</label>
@@ -159,61 +196,72 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['grantCategory'])) {
             </div>
 
             <div id="justificationDiv" style="display: none;">
-                <label for="justification">Αιτιολογία Χορηγίας (PDF, JPEG, PNG only, Max 2MB):</label>
-                <input type="file" name="document">
+            <label for="justification" id="justificationTitle"> Αιτιολογία Χορηγίας (PDF, JPEG, PNG only, Max 2MB):</label>    
+            <input type="file" name="document" accept=".pdf, .jpeg, .png">            
             </div>
+            
             <input type="submit" value="Καταχώρηση">
         </form>
     </div>
 
     <script>
-        $(document).ready(function () {
-            // Listen for changes on the grant category dropdown
-            $('#grantCategory').change(function () {
-                var grantCategory = $(this).val();
 
-                // If a category is selected, fetch the relevant criteria
-                if (grantCategory) {
-                    $.ajax({
-                        url: 'fetchGrantCriteria.php',
-                        type: 'POST',
-                        data: { grantCategory: grantCategory },
-                        dataType: 'json',
-                        success: function (response) {
-                            if (response.success) {
-                                var criteria = response.criteria;
+        
+       $(document).ready(function () {
+    // Listen for changes on the grant category dropdown
+    $('#grantCategory').change(function () {
+        var grantCategory = $(this).val();
 
-                                // Show or hide WithdrawalVehicle field based on criteria
-                                if (criteria.RequiresWithdrawalVehicle == 1) {
-                                    $('#withdrawalVehicleDiv').show();
-                                    $('#withdrawalVehicleID').prop('required', true);
-                                } else {
-                                    $('#withdrawalVehicleDiv').hide();
-                                    $('#withdrawalVehicleID').removeAttr('required').val('');
-                                }
+        // If a category is selected, fetch the relevant criteria
+        if (grantCategory) {
+            $.ajax({
+                url: 'fetchGrantCriteria.php',
+                type: 'POST',
+                data: { grantCategory: grantCategory },
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success) {
+                        var criteria = response.criteria;
 
-                                // Show or hide the Justification field and populate it if necessary
-                                if (criteria.RequiredJustification) {
-                                    $('#justificationDiv').show();
-                                } else {
-                                    $('#justificationDiv').hide();
-                                }
-                            } else {
-                                alert(response.message || 'Error fetching requirements.');
-                            }
-                        },
-                        error: function () {
-                            alert('An error occurred while fetching grant requirements.');
+                        // Show or hide WithdrawalVehicle field based on criteria
+                        if (criteria.RequiresWithdrawalVehicle == 1) {
+                            $('#withdrawalVehicleDiv').show();
+                            $('#withdrawalVehicleID').prop('required', true);
+                        } else {
+                            $('#withdrawalVehicleDiv').hide();
+                            $('#withdrawalVehicleID').removeAttr('required').val('');
                         }
-                    });
-                } else {
-                    $('#withdrawalVehicleDiv').hide();
-                    $('#justificationDiv').hide();
-                    $('#withdrawalVehicleID').removeAttr('required');
+
+                        // Show or hide the Justification field and update the title
+                        if (criteria.JustificationTitle) {
+                            $('#justificationDiv').show();
+                            $('#justificationTitle').text(criteria.JustificationTitle);
+                        } else {
+                            $('#justificationDiv').hide();
+                        }
+                    } else {
+                        alert(response.message || 'Error fetching requirements.');
+                    }
+                },
+                error: function () {
+                    alert('An error occurred while fetching grant requirements.');
                 }
             });
-        });
-    </script>
+        } else {
+            $('#withdrawalVehicleDiv').hide();
+            $('#justificationDiv').hide();
+            $('#withdrawalVehicleID').removeAttr('required');
+        }
+    });
+});
 
+document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('loginModal');
+        if (modal) {
+            modal.style.display = 'block';
+        }
+    });
+
+    </script>
 </body>
 </html>

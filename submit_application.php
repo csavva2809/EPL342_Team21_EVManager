@@ -81,3 +81,4 @@ if (isset($_FILES['supportingDocuments'])) {
 
 echo "Application submitted successfully.";
 ?>
+ 
