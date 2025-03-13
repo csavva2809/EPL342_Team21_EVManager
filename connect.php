@@ -1,9 +1,9 @@
 <?php
-$serverName = "mssql.cs.ucy.ac.cy"; // Replace with your server name
+$serverName = ""; // Replace with your server name
 $connectionOptions = array(
-    "Database" => "ksavva05", // Replace with your database name
-    "Uid" => "ksavva05",           // Replace with your username
-    "PWD" => "hNRTkrtS"            // Replace with your password
+    "Database" => "", // Replace with your database name
+    "Uid" => "",           // Replace with your username
+    "PWD" => ""            // Replace with your password
 );
 
 // Establishes the connection
